@@ -1,24 +1,14 @@
 #include "util.h";
 #include "lexer.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
 
 Token* tokens;
 int tokens_len;
 char* prog;
 int prog_len;
 int prog_pos;
-
-int lex(char* source_prog, Token* tokens) {
-    
-    if (sizeof(source_prog) == 0) {
-        return 0;
-    }
-
-    prog_len = sizeof(source_prog) / sizeof(prog[0]);
-    tokens_len = sizeof(Token) * prog_len;
-    //create an array of tokens that is the size of the sourceprog in characters
-    tokens = (Token*)malloc(tokens_len);
-}
 
 // get the char we're that prog is pointing at and increment prog
 char get_char() {
@@ -33,23 +23,66 @@ char get_char() {
     return c;
 }
 
+Token eval_lit() {
+    char* digits = malloc(sizeof(char)*MAXIMUM_DIGITS);
+    //need to look at next character
+    ++prog;
+    int neg = 0;
+    // if the next character after the # tag is a -, we have a negative number
+    if (*prog == '-') {
+        neg = 1;
+        ++prog;
+    }
+    for(int i = 0; i < MAXIMUM_DIGITS; i++) {
+        if(isdigit(*prog)) {
+            *digits = *prog;
+            digits++;
+            prog++;
+        } else {
+            prog++;
+            return lit_init(lit, atoi(digits));
+        }
+    }
+    //if this for loop ends, that means we're using a number that's too large (it kept seeing digits after 20)
+    error("Literal argument too large");
+}
+
 Token add_token(char c) {
     switch(c) {
         //single character tokens
-        case '!': return write;
-        case '^': return read;
-        case '+': return add;
-        case '-': return sub;
-        case '*': return mul;
-        case '/': return div;
-        case '@': return br;
-        case '?': return cbr;
-        case '<': return lshift;
-        case '>': return rshift;
-        case ',': return comma;
-        case '[': return lbracket;
-        case ']': return rbracket;
-        //return a reg with the next character
-        case 'R': return eval_reg(get_char());
+        case '!': return token_init(write);
+        case '^': return token_init(read);
+        case '+': return token_init(add);
+        case '-': return token_init(sub);
+        case '*': return token_init(mul);
+        case '/': return token_init(div);
+        case '@': return token_init(br);
+        case '?': return token_init(cbr);
+        case '<': return token_init(lshift);
+        case '>': return token_init(rshift);
+        case ',': return token_init(comma);
+        case '[': return token_init(lbracket);
+        case ']': return token_init(rbracket);
+        //return a reg using the next character (also increments the pointer)
+        case 'R': return token_init(eval_reg(get_char()));
+        case '#': return eval_lit();
+    }
+}
+
+int lex(char* source_prog, Token* tokens) {
+    
+    if (sizeof(source_prog) == 0) {
+        return 0;
+    }
+
+    prog_len = sizeof(source_prog) / sizeof(prog[0]);
+    tokens_len = sizeof(Token) * prog_len;
+    //create an array of tokens that is the size of the sourceprog in characters
+    tokens = (Token*)malloc(tokens_len);
+    // we never write to prog in here
+    prog = source_prog;
+    while(prog_pos < prog_len) {
+        *tokens = add_token(get_char());
+        tokens++;
     }
 }

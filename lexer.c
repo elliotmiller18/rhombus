@@ -55,7 +55,7 @@ Token add_token(char c) {
         case '+': return token_init(add);
         case '-': return token_init(sub);
         case '*': return token_init(mul);
-        case '/': return token_init(div);
+        case '/': return token_init(divide);
         case '@': return token_init(br);
         case '?': return token_init(cbr);
         case '<': return token_init(lshift);

@@ -1,7 +1,7 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include "lexer.h"
+#include "token.h"
 
 //convert an integer 
 Token num_to_reg(int i);
